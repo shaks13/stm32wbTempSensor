@@ -31,7 +31,7 @@
 /* USER CODE BEGIN Includes */
 
 /* USER CODE END Includes */
-
+extern ADC_HandleTypeDef hadc1;
 /* Private typedef -----------------------------------------------------------*/
 typedef struct
 {
@@ -70,6 +70,7 @@ typedef struct
 /* USER CODE END PM */
 
 /* Private variables ---------------------------------------------------------*/
+static uint8_t pui8AppTimerId;
 /**
  * START of Section BLE_APP_CONTEXT
  */
@@ -152,6 +153,23 @@ static void HTSAPP_Suppress(void)
 }
 #endif
 
+static void hts_onTimeoutCb( void )
+{
+  /**
+   * The code shall be executed in the background as an aci command may be sent
+   * The background is the only place where the application can make sure a new aci command
+   * is not sent if there is a pending one
+   */
+  UTIL_SEQ_SetTask(1 << CFG_TASK_HTS_MEAS_REQ_ID, CFG_SCH_PRIO_0);
+
+  return;
+}
+
+static void hts_performTask( void )
+{
+	APP_DBG_MSG("temperature measurement \r\n");
+}
+
 /* Public functions ----------------------------------------------------------*/
 
 void HTS_App_Notification(HTS_App_Notification_evt_t *pNotification)
@@ -165,11 +183,11 @@ void HTS_App_Notification(HTS_App_Notification_evt_t *pNotification)
 void HTSAPP_Init(void)
 {
 /* USER CODE BEGIN HTSAPP_Init */
-	/** Create timer to handle the temperature measurement   */
-	HW_TS_Create(CFG_TIM_APP_ID_ISR, &pui8AppTimerId, hw_ts_Repeated, hts_onTimeoutCb);
-	HW_TS_Start (CFG_TIM_APP_ID_ISR, DEFAULT_HTS_MEASUREMENT_INTERVAL);
 	/*Register the measurement task*/
 	UTIL_SEQ_RegTask( 1<<CFG_TASK_HTS_MEAS_REQ_ID, UTIL_SEQ_RFU, HTSAPP_Measurement);
+	/** Create timer to handle the temperature measurement   */
+	HW_TS_Create(CFG_TIM_APP_ID_ISR, &pui8AppTimerId, hw_ts_Repeated, hts_onTimeoutCb);
+	HW_TS_Start (pui8AppTimerId, DEFAULT_HTS_MEASUREMENT_INTERVAL);
 	APP_DBG_MSG(" health thermometer initialized \n");
 /* USER CODE END HTSAPP_Init */
 return;
@@ -177,8 +195,15 @@ return;
 
 void HTSAPP_Measurement(void)
 {
-/* USER CODE BEGIN HTSAPP_Measurement */
+//uint32_t ui32value;
+///* USER CODE BEGIN HTSAPP_Measurement */
 	APP_DBG_MSG("temperature measurement \r\n");
+//	HAL_ADC_Start (&hadc1);
+//	HAL_ADC_PollForConversion(&hadc1, 100);
+//	ui32value = HAL_ADC_GetValue(&hadc1);
+//	HAL_ADC_Stop (&hadc1);
+//	APP_DBG_MSG("value %l \r\n",ui32value);
+
 /* USER CODE END HTSAPP_Measurement */
   return;
 }
