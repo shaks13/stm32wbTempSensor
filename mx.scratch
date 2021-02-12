@@ -14,20 +14,7 @@
       <ProjectName>stm32wbTempSensor</ProjectName>
       <ProjectNature>C</ProjectNature>
       <Secure />
-      <filestoremove>
-        <file>
-          <name>Drivers\STM32WBxx_HAL_Driver\Src\stm32wbxx_hal_pcd.c</name>
-        </file>
-        <file>
-          <name>Drivers\STM32WBxx_HAL_Driver\Src\stm32wbxx_hal_pcd_ex.c</name>
-        </file>
-        <file>
-          <name>Drivers\STM32WBxx_HAL_Driver\Src\stm32wbxx_ll_usb.c</name>
-        </file>
-        <file>
-          <name>Drivers\STM32WBxx_HAL_Driver\Src\stm32wbxx_hal_lptim.c</name>
-        </file>
-      </filestoremove>
+      <filestoremove />
       <sourceEntriesToRemove>
         <sourceEntry />
       </sourceEntriesToRemove>
@@ -65,6 +52,7 @@
           <Cincludes>
             <include>Core\Inc</include>
             <include>STM32_WPAN\App</include>
+            <include>X-CUBE-MEMS1\Target</include>
             <include>Drivers\STM32WBxx_HAL_Driver\Inc</include>
             <include>Drivers\STM32WBxx_HAL_Driver\Inc\Legacy</include>
             <include>Utilities\lpm\tiny_lpm</include>
@@ -82,6 +70,14 @@
             <include>Utilities\sequencer</include>
             <include>Middlewares\ST\STM32_WPAN\ble</include>
             <include>Drivers\CMSIS\Include</include>
+            <include>Drivers\BSP\Components\lsm6dso</include>
+            <include>Drivers\BSP\Components\lis2dw12</include>
+            <include>Drivers\BSP\Components\lis2mdl</include>
+            <include>Drivers\BSP\Components\hts221</include>
+            <include>Drivers\BSP\Components\lps22hh</include>
+            <include>Drivers\BSP\Components\stts751</include>
+            <include>Drivers\BSP\IKS01A3</include>
+            <include>Drivers\BSP\Components\Common</include>
           </Cincludes>
           <definestoremove>
             <Adefines />
@@ -116,6 +112,9 @@
         </sourceEntry>
         <sourceEntry>
           <name>Utilities</name>
+        </sourceEntry>
+        <sourceEntry>
+          <name>X-CUBE-MEMS1</name>
         </sourceEntry>
       </sourceEntries>
       <Groups />

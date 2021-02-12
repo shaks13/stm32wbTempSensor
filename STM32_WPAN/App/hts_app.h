@@ -59,7 +59,7 @@ void HTSAPP_Init(void);
 void HTSAPP_Measurement(void);
 void HTSAPP_IntermediateTemperature(void);
 void HTSAPP_MeasurementInterval(void);
-void HTSAPP_Profile_UpdateChar(void);
+void HTSAPP_Profile_UpdateChar(uint8_t ui8characId, int16_t i16temp);
 /* USER CODE BEGIN EF */
 
 /* USER CODE END EF */
