@@ -60,6 +60,8 @@ void IPCC_C1_TX_IRQHandler(void)
 
 * add UTIL_SEQ_Run(~0); in the main endless loop
 
-# add the management of the sensor (IKS0113)
+## add the management of the sensor (IKS0113)
 add the I2C bus
+
+# add a custom service environement sensing
 

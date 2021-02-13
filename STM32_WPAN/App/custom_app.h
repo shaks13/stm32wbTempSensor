@@ -1,9 +1,9 @@
-/* USER CODE BEGIN Header */
+/* USER CODE BEGIN */
 /**
-  ******************************************************************************
-  * File Name          : App/hts_app.h
-  * Description        : Header for hts_application.c module
-  ******************************************************************************
+ ******************************************************************************
+ * File Name          : App/custom_app.h
+ * Description        : Header for custom_app.c module
+ ******************************************************************************
   * @attention
   *
   * <h2><center>&copy; Copyright (c) 2021 STMicroelectronics.
@@ -19,12 +19,11 @@
 /* USER CODE END Header */
 
 /* Define to prevent recursive inclusion -------------------------------------*/
-#ifndef __HTS_APP_H
-#define __HTS_APP_H
+#ifndef __CUSTOM_APP_H
+#define __CUSTOM_APP_H
 
 #ifdef __cplusplus
-extern "C"
-{
+extern "C" {
 #endif
 
 /* Includes ------------------------------------------------------------------*/
@@ -35,6 +34,17 @@ extern "C"
 /* USER CODE END Includes */
 
 /* Exported types ------------------------------------------------------------*/
+typedef enum
+{
+  CUSTOM_CONN_HANDLE_EVT,
+  CUSTOM_DISCON_HANDLE_EVT,
+} Custom_App_Opcode_Notification_evt_t;
+
+typedef struct
+{
+  Custom_App_Opcode_Notification_evt_t     Custom_Evt_Opcode;
+  uint16_t                                 ConnectionHandle;
+} Custom_App_ConnHandle_Not_evt_t;
 /* USER CODE BEGIN ET */
 
 /* USER CODE END ET */
@@ -55,11 +65,8 @@ extern "C"
 /* USER CODE END EM */
 
 /* Exported functions ---------------------------------------------*/
-void HTSAPP_Init(void);
-void HTSAPP_Measurement(void);
-void HTSAPP_IntermediateTemperature(void);
-void HTSAPP_MeasurementInterval(void);
-void HTSAPP_Profile_UpdateChar(uint8_t ui8characId, int16_t i16temp) ;
+  void Custom_APP_Init( void );
+  void Custom_APP_Notification( Custom_App_ConnHandle_Not_evt_t *pNotification );
 /* USER CODE BEGIN EF */
 
 /* USER CODE END EF */
@@ -68,6 +75,6 @@ void HTSAPP_Profile_UpdateChar(uint8_t ui8characId, int16_t i16temp) ;
 }
 #endif
 
-#endif /*__HTS_APP_H */
+#endif /*__CUSTOM_APP_H */
 
 /************************ (C) COPYRIGHT STMicroelectronics *****END OF FILE****/

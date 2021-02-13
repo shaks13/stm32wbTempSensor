@@ -190,9 +190,8 @@ static void hts_getTimeStamp(HTS_TimeStamp_t *stimestamp) {
 	stimestamp->Hours=sTime.Hours;
 	stimestamp->Minutes=sTime.Minutes;
 	stimestamp->Seconds=sTime.Seconds;
-
-
 }
+
 /* Public functions ----------------------------------------------------------*/
 
 void HTS_App_Notification(HTS_App_Notification_evt_t *pNotification) {
