@@ -38,6 +38,7 @@ __weak HAL_StatusTypeDef MX_I2C1_Init(I2C_HandleTypeDef* hi2c);
   */
 
 I2C_HandleTypeDef hi2c1;
+
 /**
   * @}
   */

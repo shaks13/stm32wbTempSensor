@@ -269,11 +269,11 @@ void HTSAPP_MeasurementInterval(void) {
  * @param  None
  * @retval None
  */
-void HTSAPP_Profile_UpdateChar(uint8_t ui8characId, int16_t i16temp) {
+void HTSAPP_Profile_UpdateChar(uint32_t ui32characId, int16_t i16temp) {
 	HTS_TemperatureValue_t sTemperatureValue;
 	HTS_TimeStamp_t stimestamp;
 
-	switch(ui8characId)
+	switch(ui32characId)
 	{
 		case TEMPERATURE_MEASUREMENT_CHAR_UUID:
 			hts_getTimeStamp (&stimestamp);

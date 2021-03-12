@@ -26,7 +26,8 @@
 #include "custom_app.h"
 #include "custom_stm.h"
 #include "stm32_seq.h"
-
+#include "iks01a3_env_sensors.h"
+#include "uuid.h"
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
 
@@ -54,7 +55,7 @@ typedef struct
 
 /* Private defines ------------------------------------------------------------*/
 /* USER CODE BEGIN PD */
-
+#define DEFAULT_CUSTOMAPP_MEASUREMENT_INTERVAL   (1000000/CFG_TS_TICK_VAL)  /**< 1s */
 /* USER CODE END PD */
 
 /* Private macros -------------------------------------------------------------*/
@@ -63,6 +64,7 @@ typedef struct
 /* USER CODE END PM */
 
 /* Private variables ---------------------------------------------------------*/
+static uint8_t pui8AppTimerId;
 /**
  * START of Section BLE_APP_CONTEXT
  */
@@ -83,7 +85,7 @@ uint8_t SecureReadData;
 
 /* Private function prototypes -----------------------------------------------*/
   /* ambiantTemperature */
-static void Custom_Temp_Update_Char(void);
+static void Custom_Temp_Update_Char(uint32_t ui32uuid, void *pdata);
 static void Custom_Temp_Send_Notification(void);
 static void Custom_Temp_Send_Indication(void);
   /* BatteryLevel */
@@ -95,6 +97,41 @@ static void Custom_Batterylevel_Send_Indication(void);
 
 /* USER CODE END PFP */
 
+static void ess_onTimeoutCb(void) {
+	/**
+	 * The code shall be executed in the background as an aci command may be sent
+	 * The background is the only place where the application can make sure a new aci command
+	 * is not sent if there is a pending one
+	 */
+	UTIL_SEQ_SetTask(1 << CFG_TASK_ESS_MEAS_REQ_ID, CFG_SCH_PRIO_0);
+
+	return;
+}
+
+void essApp_measure(void) {
+#if USE_ONCHIPSENSOR == 0
+	float fvalue;
+	IKS01A3_ENV_SENSOR_GetValue(IKS01A3_HTS221_0, ENV_TEMPERATURE, &fvalue);
+	APP_DBG_MSG("temp %i\n", (int8_t) fvalue);
+	Custom_Temp_Update_Char(TEMPERATURE_MEASUREMENT_CHAR_UUID,(int16_t) fvalue);
+#else
+	int32_t i32value;
+	uint32_t ui32adc;
+
+	/* USER CODE BEGIN HTSAPP_Measurement */
+//	APP_DBG_MSG("temperature measurement \r\n");
+	HAL_ADC_Start(&hadc1);
+	if (HAL_OK == HAL_ADC_PollForConversion(&hadc1, 100)) {
+		ui32adc = HAL_ADC_GetValue(&hadc1);
+		i32value = __HAL_ADC_CALC_TEMPERATURE(3300, ui32adc,
+				ADC_RESOLUTION_12B);
+	}
+	HAL_ADC_Stop(&hadc1);
+	APP_DBG_MSG("adc %lu & temp %li\n", ui32adc, i32value);
+#endif
+	/* USER CODE END HTSAPP_Measurement */
+	return;
+}
 /* Functions Definition ------------------------------------------------------*/
 void Custom_STM_App_Notification(Custom_STM_App_Notification_evt_t *pNotification)
 {
@@ -222,6 +259,13 @@ void Custom_APP_Init(void)
 {
 /* USER CODE BEGIN CUSTOM_APP_Init */
 
+	UTIL_SEQ_RegTask(1 << CFG_TASK_ESS_MEAS_REQ_ID, UTIL_SEQ_RFU,
+			essApp_measure);
+	/** Create timer to handle the temperature measurement   */
+	HW_TS_Create(CFG_TIM_ESS_ID_ISR, &pui8AppTimerId, hw_ts_Repeated,
+			ess_onTimeoutCb);
+	HW_TS_Start(pui8AppTimerId, DEFAULT_CUSTOMAPP_MEASUREMENT_INTERVAL);
+	APP_DBG_MSG("environement sensing initialized \n");
 /* USER CODE END CUSTOM_APP_Init */
   return;
 }
@@ -237,7 +281,7 @@ void Custom_APP_Init(void)
  *************************************************************/
 
   /* ambiantTemperature */
-void Custom_Temp_Update_Char(void) /* Property Read */
+void Custom_Temp_Update_Char(uint32_t ui32uuid, void *pdata) /* Property Read */
 {
   Custom_STM_App_Update_Char(CUSTOM_STM_TEMP, (uint8_t *)UpdateCharData);
   /* USER CODE BEGIN Temp_UC*/
@@ -246,6 +290,9 @@ void Custom_Temp_Update_Char(void) /* Property Read */
   return;
 }
 
+/**
+ * @note a notification is acknowledged message
+ */
 void Custom_Temp_Send_Notification(void) /* Property Notification */
  {
   if(Custom_App_Context.Temp_Notification_Status)

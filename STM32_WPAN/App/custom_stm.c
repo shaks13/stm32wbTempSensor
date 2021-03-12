@@ -241,7 +241,7 @@ void SVCCTL_InitCustomSvc(void)
     uuid.Char_UUID_16 = 0x180f;
     aci_gatt_add_service(UUID_TYPE_16,
                       (Service_UUID_t *) &uuid,
-                      SECONDARY_SERVICE,
+					  PRIMARY_SERVICE,
                       4,
                       &(CustomContext.CustomBatteryHdle));
 
