@@ -84,7 +84,9 @@ typedef struct
 
 /* External variables --------------------------------------------------------*/
 /* USER CODE BEGIN EV */
-
+/* Private variables ---------------------------------------------------------*/
+#define CUSTOM_TEMP_SIZE 			2
+#define CUSTOM_BATTERY_SIZE 		1
 /* USER CODE END EV */
 
 /* Exported macros -----------------------------------------------------------*/

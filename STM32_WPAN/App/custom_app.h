@@ -46,7 +46,14 @@ typedef struct
   uint16_t                                 ConnectionHandle;
 } Custom_App_ConnHandle_Not_evt_t;
 /* USER CODE BEGIN ET */
-
+typedef enum
+{
+  CUSTOMAPP_STATE_INIT			= 0x00,
+  CUSTOMAPP_STATE_IDLE 			= 0x01,		/* the ble stack is running*/
+  CUSTOMAPP_STATE_CONNECTED  	= 0x02,
+  CUSTOMAPP_STATE_NOTIFICATION	= 0x04,		/* the notification have been enabled */
+  CUSTOMAPP_STATE_INDICATION 	= 0x10,		/* the indication have been enabled */
+} Custom_App_state_t;
 /* USER CODE END ET */
 
 /* Exported constants --------------------------------------------------------*/

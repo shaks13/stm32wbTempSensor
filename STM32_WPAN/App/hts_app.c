@@ -57,7 +57,7 @@ typedef struct {
 /* USER CODE END PTD */
 
 /* Private defines ------------------------------------------------------------*/
-#define DEFAULT_HTS_MEASUREMENT_INTERVAL   (1000000/CFG_TS_TICK_VAL)  /**< 1s */
+#define DEFAULT_HTS_MEASUREMENT_INTERVAL   (13000000/CFG_TS_TICK_VAL)  /**< 13s */
 #define DEFAULT_TEMPERATURE_TYPE          TT_Armpit
 #define NB_SAVED_MEASURES                                                     10
 /* USER CODE BEGIN PD */
@@ -227,7 +227,7 @@ void HTSAPP_Measurement(void) {
 #if USE_ONCHIPSENSOR == 0
 	float fvalue;
 	IKS01A3_ENV_SENSOR_GetValue(IKS01A3_HTS221_0, ENV_TEMPERATURE, &fvalue);
-	APP_DBG_MSG("temp %i\n", (int8_t) fvalue);
+	APP_DBG_MSG("temp hts %i\n", (int8_t) fvalue);
 	HTSAPP_Profile_UpdateChar(TEMPERATURE_MEASUREMENT_CHAR_UUID,(int16_t) fvalue);
 #else
 	int32_t i32value;

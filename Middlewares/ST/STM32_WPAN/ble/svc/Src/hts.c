@@ -21,7 +21,7 @@
 /* Includes ------------------------------------------------------------------*/
 #include "common_blesvc.h"
 
-
+#define  ENABLE_HTS 		0
 /* Private typedef -----------------------------------------------------------*/
 typedef struct
 {
@@ -307,6 +307,7 @@ static tBleStatus Update_Char_TemperatureValue(uint16_t CharHandle,
  * @param  None
  * @retval None
  */
+#if ENABLE_HTS == 1
 void HTS_Init(void)
 {
   uint16_t uuid;
@@ -600,6 +601,12 @@ tBleStatus HTS_Update_Char(uint16_t UUID,
 
   return return_value;
 }/* end HTS_Update_Char() */
-
+#else
+tBleStatus HTS_Update_Char(uint16_t UUID,
+                           uint8_t *pPayload)
+{
+	return BLE_STATUS_FAILED;
+}
+#endif
 
 /************************ (C) COPYRIGHT STMicroelectronics *****END OF FILE****/
