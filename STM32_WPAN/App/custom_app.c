@@ -217,10 +217,6 @@ void Custom_STM_App_Notification(
 		/* USER CODE BEGIN CUSTOM_STM_TEMP_NOTIFY_ENABLED_EVT */
 		APP_DBG_MSG("[ntf] on\n");
 		ui8state |= CUSTOMAPP_STATE_NOTIFICATION;
-//		HW_TS_Start(pui8NtfTimerId, DEFAULT_CUSTOMAPP_NOTIFICATION_INTERVAL);
-//		ui16nthNtfElemt = ui16nthUpdateValue;
-//		ui16nbNtfSent = 0;
-//		Custom_Temp_Send_Notification(ui16nthNtfElemt);
 		/* USER CODE END CUSTOM_STM_TEMP_NOTIFY_ENABLED_EVT */
 		break;
 
@@ -244,6 +240,25 @@ void Custom_STM_App_Notification(
 		APP_DBG_MSG("[ind] off\n");
 		ui8state &= ~CUSTOMAPP_STATE_INDICATION;
 		/* USER CODE END CUSTOM_STM_TEMP_INDICATE_DISABLED_EVT */
+		break;
+
+	case CUSTOM_STM_TEMPLOG_NOTIFY_ENABLED_EVT:
+		/* USER CODE BEGIN CUSTOM_STM_TEMP_NOTIFY_ENABLED_EVT */
+		APP_DBG_MSG("[ntf] log on\n");
+		ui8state |= CUSTOMAPP_STATE_NOTIFICATION;
+		HW_TS_Start(pui8NtfTimerId, DEFAULT_CUSTOMAPP_NOTIFICATION_INTERVAL);
+		ui16nthNtfElemt = ui16nthUpdateValue;
+		ui16nbNtfSent = 0;
+		Custom_Temp_Send_Notification(ui16nthNtfElemt);
+		/* USER CODE END CUSTOM_STM_TEMP_NOTIFY_ENABLED_EVT */
+		break;
+
+	case CUSTOM_STM_TEMPLOG_NOTIFY_DISABLED_EVT:
+		/* USER CODE BEGIN CUSTOM_STM_TEMP_NOTIFY_ENABLED_EVT */
+		APP_DBG_MSG("[ntf] log off\n");
+		ui8state &= ~CUSTOMAPP_STATE_NOTIFICATION;
+		HW_TS_Stop(pui8NtfTimerId);
+		/* USER CODE END CUSTOM_STM_TEMP_NOTIFY_ENABLED_EVT */
 		break;
 
 		/* BatteryLevel */
@@ -302,15 +317,16 @@ void Custom_APP_Notification(Custom_App_ConnHandle_Not_evt_t *pNotification)
 	/* USER CODE END P2PS_CUSTOM_Notification_Custom_Evt_Opcode */
 	case CUSTOM_CONN_HANDLE_EVT:
 		/* USER CODE BEGIN CUSTOM_CONN_HANDLE_EVT */
-		APP_DBG_MSG ("peripheral connected");
+		APP_DBG_MSG("peripheral connected");
 		ui8state |= CUSTOMAPP_STATE_CONNECTED;
 		/* USER CODE END CUSTOM_CONN_HANDLE_EVT */
 		break;
 
 	case CUSTOM_DISCON_HANDLE_EVT:
 		/* USER CODE BEGIN CUSTOM_DISCON_HANDLE_EVT */
-		APP_DBG_MSG ("peripheral disconnected");
-		ui8state &= ~(CUSTOMAPP_STATE_CONNECTED|CUSTOMAPP_STATE_NOTIFICATION|CUSTOMAPP_STATE_INDICATION);
+		APP_DBG_MSG("peripheral disconnected");
+		ui8state &= ~(CUSTOMAPP_STATE_CONNECTED | CUSTOMAPP_STATE_NOTIFICATION
+				| CUSTOMAPP_STATE_INDICATION);
 		/* USER CODE END CUSTOM_DISCON_HANDLE_EVT */
 		break;
 	default:
@@ -341,7 +357,7 @@ void Custom_APP_Init(void)
 	HW_TS_Start(pui8AppTimerId, DEFAULT_CUSTOMAPP_MEASUREMENT_INTERVAL);
 	/** Create timer to handle the notification period transmission   */
 	HW_TS_Create(CFG_TIM_NTF_ID_ISR, &pui8NtfTimerId, hw_ts_Repeated,
-			ess_onTimeoutCb);
+			ess_onNtfTimeoutCb);
 	HW_TS_Start(pui8AppTimerId, DEFAULT_CUSTOMAPP_MEASUREMENT_INTERVAL);
 	APP_DBG_MSG("Environment sensing initialized \n");
 
@@ -369,12 +385,16 @@ void Custom_Temp_Update_Char(const uint32_t ui32uuid, const float fdata) /* Prop
 	{/* don't update the characteristic when the indication is enabled. the log transmission is on going*/
 		Custom_STM_App_Update_Char(CUSTOM_STM_TEMP,
 				(uint8_t*) (&NotifyCharData[ui16nthUpdateValue]));
-		ui16nthUpdateValue = (ui16nthUpdateValue + 2) % CUSTIMAPP_UDPATEARRAY_SIZE;
+		ui16nthUpdateValue = (ui16nthUpdateValue + 2)
+				% CUSTIMAPP_UDPATEARRAY_SIZE;
 		if (ui16nbTempAvailable < CUSTIMAPP_UDPATEARRAY_NBELMT)
 		{
 			ui16nbTempAvailable++;
+			/* update the number of temperature available */
+			Custom_STM_App_Update_Char(CUSTOM_STM_TEMPLOG,
+					(uint8_t*) &ui16nbTempAvailable);
 		}
-		//	ui16nthNotifyRead = ui16nthUpdateValue; /* update the read pointer to the last value saved */
+
 	}
 	/* USER CODE END Temp_UC*/
 	return;
@@ -388,7 +408,8 @@ void Custom_Temp_Update_Char(const uint32_t ui32uuid, const float fdata) /* Prop
  */
 void Custom_Temp_Send_Notification(const uint16_t ui16nthElemt) /* Property Notification */
 {
-uint8_t aui8NotifyEndOfLogData[CUSTOM_TEMP_SIZE]={0xFF,0xFF};
+	uint8_t aui8NotifyEndOfLogData[CUSTOM_TEMP_SIZE] =
+	{ 0xFF, 0xFF };
 
 	if (Custom_App_Context.Temp_Notification_Status)
 	{
@@ -397,8 +418,7 @@ uint8_t aui8NotifyEndOfLogData[CUSTOM_TEMP_SIZE]={0xFF,0xFF};
 		if ((ui16nbNtfSent >= CUSTIMAPP_UDPATEARRAY_NBELMT)
 				|| (ui16nbNtfSent >= ui16nbTempAvailable))
 		{/* when all the available data have been sent */
-			Custom_STM_App_Update_Char(CUSTOM_STM_TEMP,
-					aui8NotifyEndOfLogData);
+			Custom_STM_App_Update_Char(CUSTOM_STM_TEMP, aui8NotifyEndOfLogData);
 			ui16nbNtfSent++;
 		}
 		else

@@ -37,6 +37,7 @@ typedef enum
 {
   /* ambiantTemperature */
   CUSTOM_STM_TEMP,
+  CUSTOM_STM_TEMPLOG,
   /* BatteryLevel */
   CUSTOM_STM_BATTERYLEVEL,
 } Custom_STM_Char_Opcode_t;
@@ -49,6 +50,8 @@ typedef enum
   CUSTOM_STM_TEMP_NOTIFY_DISABLED_EVT,
   CUSTOM_STM_TEMP_INDICATE_ENABLED_EVT,
   CUSTOM_STM_TEMP_INDICATE_DISABLED_EVT,
+  CUSTOM_STM_TEMPLOG_NOTIFY_ENABLED_EVT,
+  CUSTOM_STM_TEMPLOG_NOTIFY_DISABLED_EVT,
   /* batLevel */
   CUSTOM_STM_BATTERYLEVEL_READ_EVT,
   CUSTOM_STM_BATTERYLEVEL_NOTIFY_ENABLED_EVT,
@@ -86,6 +89,7 @@ typedef struct
 /* USER CODE BEGIN EV */
 /* Private variables ---------------------------------------------------------*/
 #define CUSTOM_TEMP_SIZE 			2
+#define CUSTOM_TEMPLOG_SIZE 		2
 #define CUSTOM_BATTERY_SIZE 		1
 /* USER CODE END EV */
 

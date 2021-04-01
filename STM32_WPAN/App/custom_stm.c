@@ -28,9 +28,11 @@
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
-typedef struct {
+typedef struct
+{
 	uint16_t CustomEnvsensingHdle; /**< ambiantTemperature handle */
 	uint16_t CustomTempHdle; /**< temperature handle */
+	uint16_t CustomTempLogHdle; /**< temperature log handle */
 	uint16_t CustomBatteryHdle; /**< BatteryLevel handle */
 	uint16_t CustomBatterylevelHdle; /**< batLevel handle */
 } CustomContext_t;
@@ -56,7 +58,7 @@ typedef struct {
 
 /* Private macros ------------------------------------------------------------*/
 /* USER CODE BEGIN PM */
-
+#define COPY_CAPP_WRITE_CHAR_UUID(uuid_struct)       COPY_UUID_128(uuid_struct,0x5F, 0x3B, 0x17, 0x85, 0x32, 0xA0, 0x43, 0x1A, 0x98, 0x49, 0x95, 0x44, 0x44, 0xA8, 0xA6, 0x4D)
 /* USER CODE END PM */
 
 /* Private variables ---------------------------------------------------------*/
@@ -113,7 +115,8 @@ do {\
  * @param  Event: Address of the buffer holding the Event
  * @retval Ack: Return whether the Event has been managed or not
  */
-static SVCCTL_EvtAckStatus_t Custom_STM_Event_Handler(void *Event) {
+static SVCCTL_EvtAckStatus_t Custom_STM_Event_Handler(void *Event)
+{
 	SVCCTL_EvtAckStatus_t return_value;
 	hci_event_pckt *event_pckt;
 	evt_blue_aci *blue_evt;
@@ -125,71 +128,96 @@ static SVCCTL_EvtAckStatus_t Custom_STM_Event_Handler(void *Event) {
 	return_value = SVCCTL_EvtNotAck;
 	event_pckt = (hci_event_pckt*) (((hci_uart_pckt*) Event)->data);
 
-	switch (event_pckt->evt) {
+	switch (event_pckt->evt)
+	{
 	case EVT_VENDOR:
 		blue_evt = (evt_blue_aci*) event_pckt->data;
-		switch (blue_evt->ecode) {
+		switch (blue_evt->ecode)
+		{
 
 		case EVT_BLUE_GATT_ATTRIBUTE_MODIFIED:
 			/* USER CODE BEGIN EVT_BLUE_GATT_ATTRIBUTE_MODIFIED */
 			attribute_modified =
 					(aci_gatt_attribute_modified_event_rp0*) blue_evt->data;
 			if (attribute_modified->Attr_Handle
-					== (CustomContext.CustomTempHdle + 2)) {
+					== (CustomContext.CustomTempHdle + 2))
+			{
 				return_value = SVCCTL_EvtAckFlowEnable;
 				/**
 				 * Notify to application to start measurement
 				 */
-				if (attribute_modified->Attr_Data[0] & COMSVC_Indication) {
+				if (attribute_modified->Attr_Data[0] & COMSVC_Indication)
+				{
 					Notification.Custom_Evt_Opcode =
 							CUSTOM_STM_TEMP_NOTIFY_ENABLED_EVT;
 					Custom_STM_App_Notification(&Notification);
 
-				} else {
+				}
+				else
+				{
 					Notification.Custom_Evt_Opcode =
 							CUSTOM_STM_TEMP_NOTIFY_DISABLED_EVT;
 					Custom_STM_App_Notification(&Notification);
 
 				}
 			}
-				/* USER CODE END EVT_BLUE_GATT_ATTRIBUTE_MODIFIED */
-				break;
-				case EVT_BLUE_GATT_READ_PERMIT_REQ:
-				/* USER CODE BEGIN EVT_BLUE_GATT_READ_PERMIT_REQ */
+			else if (attribute_modified->Attr_Handle
+					== (CustomContext.CustomTempLogHdle + 2))
+			{
+				return_value = SVCCTL_EvtAckFlowEnable;
+				if (attribute_modified->Attr_Data[0] & COMSVC_Indication)
+				{
+					Notification.Custom_Evt_Opcode =
+							CUSTOM_STM_TEMPLOG_NOTIFY_ENABLED_EVT;
+					Custom_STM_App_Notification(&Notification);
 
-				/* USER CODE END EVT_BLUE_GATT_READ_PERMIT_REQ */
-				break;
-				case EVT_BLUE_GATT_WRITE_PERMIT_REQ:
-				/* USER CODE BEGIN EVT_BLUE_GATT_WRITE_PERMIT_REQ */
+				}
+				else
+				{
+					Notification.Custom_Evt_Opcode =
+							CUSTOM_STM_TEMPLOG_NOTIFY_DISABLED_EVT;
+					Custom_STM_App_Notification(&Notification);
 
-				/* USER CODE END EVT_BLUE_GATT_WRITE_PERMIT_REQ */
-				break;
-
-				default:
-				/* USER CODE BEGIN EVT_DEFAULT */
-
-				/* USER CODE END EVT_DEFAULT */
-				break;
+				}
 			}
-			/* USER CODE BEGIN EVT_VENDOR*/
+			/* USER CODE END EVT_BLUE_GATT_ATTRIBUTE_MODIFIED */
+			break;
+		case EVT_BLUE_GATT_READ_PERMIT_REQ:
+			/* USER CODE BEGIN EVT_BLUE_GATT_READ_PERMIT_REQ */
 
-			/* USER CODE END EVT_VENDOR*/
-			break; /* EVT_VENDOR */
+			/* USER CODE END EVT_BLUE_GATT_READ_PERMIT_REQ */
+			break;
+		case EVT_BLUE_GATT_WRITE_PERMIT_REQ:
+			/* USER CODE BEGIN EVT_BLUE_GATT_WRITE_PERMIT_REQ */
 
-			/* USER CODE BEGIN EVENT_PCKT_CASES*/
-
-			/* USER CODE END EVENT_PCKT_CASES*/
+			/* USER CODE END EVT_BLUE_GATT_WRITE_PERMIT_REQ */
+			break;
 
 		default:
+			/* USER CODE BEGIN EVT_DEFAULT */
+
+			/* USER CODE END EVT_DEFAULT */
 			break;
 		}
+		/* USER CODE BEGIN EVT_VENDOR*/
 
-		/* USER CODE BEGIN Custom_STM_Event_Handler_2 */
+		/* USER CODE END EVT_VENDOR*/
+		break; /* EVT_VENDOR */
 
-		/* USER CODE END Custom_STM_Event_Handler_2 */
+		/* USER CODE BEGIN EVENT_PCKT_CASES*/
 
-		return (return_value);
-	}/* end Custom_STM_Event_Handler */
+		/* USER CODE END EVENT_PCKT_CASES*/
+
+	default:
+		break;
+	}
+
+	/* USER CODE BEGIN Custom_STM_Event_Handler_2 */
+
+	/* USER CODE END Custom_STM_Event_Handler_2 */
+
+	return (return_value);
+}/* end Custom_STM_Event_Handler */
 
 /* Public functions ----------------------------------------------------------*/
 
@@ -198,7 +226,8 @@ static SVCCTL_EvtAckStatus_t Custom_STM_Event_Handler(void *Event) {
  * @param  None
  * @retval None
  */
-void SVCCTL_InitCustomSvc(void) {
+void SVCCTL_InitCustomSvc(void)
+{
 
 	Char_UUID_t uuid;
 	/* USER CODE BEGIN SVCCTL_InitCustomSvc_1 */
@@ -223,7 +252,7 @@ void SVCCTL_InitCustomSvc(void) {
 
 	uuid.Char_UUID_16 = ENVIRONMENTAL_SENSING_SERVICE_UUID;
 	aci_gatt_add_service(UUID_TYPE_16, (Service_UUID_t*) &uuid,
-	PRIMARY_SERVICE, 5, &(CustomContext.CustomEnvsensingHdle));
+	PRIMARY_SERVICE, 8, &(CustomContext.CustomEnvsensingHdle));
 
 	/**
 	 *  temperature
@@ -237,6 +266,16 @@ void SVCCTL_InitCustomSvc(void) {
 			GATT_DONT_NOTIFY_EVENTS, //GATT_NOTIFY_ATTRIBUTE_WRITE | GATT_NOTIFY_WRITE_REQ_AND_WAIT_FOR_APPL_RESP, GATT_NOTIFY_READ_REQ_AND_WAIT_FOR_APPL_RESP,
 			0x10,
 			CHAR_VALUE_LEN_CONSTANT, &(CustomContext.CustomTempHdle));
+
+	COPY_CAPP_WRITE_CHAR_UUID(uuid.Char_UUID_128); /*5F3B1785-32A0-431A-9849-954444A8A64D */
+	aci_gatt_add_char(CustomContext.CustomEnvsensingHdle,
+	UUID_TYPE_128, &uuid,
+	CUSTOM_TEMP_SIZE,
+	CHAR_PROP_READ | CHAR_PROP_INDICATE, //CHAR_PROP_BROADCAST | CHAR_PROP_READ | CHAR_PROP_NOTIFY | CHAR_PROP_INDICATE,
+			ATTR_PERMISSION_NONE,
+			GATT_DONT_NOTIFY_EVENTS, //GATT_NOTIFY_ATTRIBUTE_WRITE | GATT_NOTIFY_WRITE_REQ_AND_WAIT_FOR_APPL_RESP, GATT_NOTIFY_READ_REQ_AND_WAIT_FOR_APPL_RESP,
+			0x10,
+			CHAR_VALUE_LEN_CONSTANT, &(CustomContext.CustomTempLogHdle));
 
 	/*
 	 *          BatteryLevel
@@ -261,10 +300,9 @@ void SVCCTL_InitCustomSvc(void) {
 	CUSTOM_BATTERY_SIZE,
 	CHAR_PROP_READ | CHAR_PROP_INDICATE,
 	ATTR_PERMISSION_NONE,
-			GATT_DONT_NOTIFY_EVENTS, //GATT_NOTIFY_ATTRIBUTE_WRITE | GATT_NOTIFY_WRITE_REQ_AND_WAIT_FOR_APPL_RESP | GATT_NOTIFY_READ_REQ_AND_WAIT_FOR_APPL_RESP,
+	GATT_DONT_NOTIFY_EVENTS, //GATT_NOTIFY_ATTRIBUTE_WRITE | GATT_NOTIFY_WRITE_REQ_AND_WAIT_FOR_APPL_RESP | GATT_NOTIFY_READ_REQ_AND_WAIT_FOR_APPL_RESP,
 			0x10,
-			CHAR_VALUE_LEN_CONSTANT,
-			&(CustomContext.CustomBatterylevelHdle));
+			CHAR_VALUE_LEN_CONSTANT, &(CustomContext.CustomBatterylevelHdle));
 
 	/* USER CODE BEGIN SVCCTL_InitCustomSvc_2 */
 
@@ -280,23 +318,31 @@ void SVCCTL_InitCustomSvc(void) {
  *
  */
 tBleStatus Custom_STM_App_Update_Char(Custom_STM_Char_Opcode_t CharOpcode,
-		uint8_t *pPayload) {
+		uint8_t *pPayload)
+{
 	tBleStatus result = BLE_STATUS_INVALID_PARAMS;
 	/* USER CODE BEGIN Custom_STM_App_Update_Char_1 */
 
 	/* USER CODE END Custom_STM_App_Update_Char_1 */
 
-	switch (CharOpcode) {
+	switch (CharOpcode)
+	{
 
 	case CUSTOM_STM_TEMP:
-		result = aci_gatt_update_char_value(
-				CustomContext.CustomEnvsensingHdle,
+		result = aci_gatt_update_char_value(CustomContext.CustomEnvsensingHdle,
 				CustomContext.CustomTempHdle, 0, /* charValOffset */
 				CUSTOM_TEMP_SIZE, /* charValueLen */
 				(uint8_t*) pPayload);
 		/* USER CODE BEGIN CUSTOM_STM_TEMP*/
 
 		/* USER CODE END CUSTOM_STM_TEMP*/
+		break;
+
+	case CUSTOM_STM_TEMPLOG:
+		result = aci_gatt_update_char_value(CustomContext.CustomEnvsensingHdle,
+				CustomContext.CustomTempLogHdle, 0, /* charValOffset */
+				CUSTOM_TEMPLOG_SIZE, /* charValueLen */
+				(uint8_t*) pPayload);
 		break;
 
 	case CUSTOM_STM_BATTERYLEVEL:
